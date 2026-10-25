@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Untuk Ega</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Lora:ital@1&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#2a0f1f;--bg2:#4a1630;--ink:#ffe9ef;--rose:#ff5d8f;--soft:#ffb3c9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#fff0f4;--bg2:#ffd3e1;--ink:#5a1230;--rose:#e0245e;--soft:#f07aa0}}
+:root[data-theme="dark"]{--bg:#2a0f1f;--bg2:#4a1630;--ink:#ffe9ef;--rose:#ff5d8f;--soft:#ffb3c9}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(circle at 50% 30%,var(--bg2),var(--bg) 75%);color:var(--ink);font-family:'Lora',Georgia,serif;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center}
+.stage{position:relative;z-index:2;padding:24px}
+#btn{font-family:'Caveat',cursive;font-size:clamp(2rem,8vw,3.2rem);font-weight:700;color:#fff;background:var(--rose);border:0;border-radius:999px;padding:.35em 1.3em;cursor:pointer;box-shadow:0 0 0 0 var(--rose);animation:pulse 2s infinite}
+#btn:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+@keyframes pulse{70%{box-shadow:0 0 0 22px transparent}100%{box-shadow:0 0 0 0 transparent}}
+#msg{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(2.6rem,11vw,5.5rem);line-height:1.1;margin:0;opacity:0;transform:scale(.8);transition:all 1.2s cubic-bezier(.2,.9,.3,1.2);text-shadow:0 0 30px var(--rose)}
+#msg small{display:block;font-size:.5em;color:var(--soft);margin-top:.2em}
+#msg.show{opacity:1;transform:scale(1)}
+.hidden{display:none}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.flower{position:fixed;bottom:-80px;z-index:1;pointer-events:none;will-change:transform;animation:rise linear forwards}
+@keyframes rise{to{transform:translateY(var(--dy)) rotate(var(--rot))}}
+.bloom{position:fixed;z-index:1;pointer-events:none;transform:scale(0);animation:pop .9s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes pop{to{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){#btn{animation:none}.flower{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="stage">
+  <button id="btn" type="button">coba klik ini</button>
+  <h1 id="msg" class="hidden">love you Ega<small>from Sutan</small></h1>
+</div>
+<script>
+(function(){
+  var btn=document.getElementById('btn'),msg=document.getElementById('msg');
+  var flowers=['🌸','🌷','🌹','🌺','🌼','💐','🪻','🌻'];
+  function rand(a,b){return a+Math.random()*(b-a)}
+  function rise(){
+    var f=document.createElement('div');
+    f.className='flower';
+    f.textContent=flowers[Math.floor(Math.random()*flowers.length)];
+    f.style.left=rand(0,96)+'vw';
+    f.style.fontSize=rand(28,64)+'px';
+    f.style.setProperty('--dy',-(window.innerHeight+200)+'px');
+    f.style.setProperty('--rot',rand(-40,40)+'deg');
+    f.style.animationDuration=rand(5,10)+'s';
+    document.body.appendChild(f);
+    setTimeout(function(){f.remove()},10500);
+  }
+  function bloom(){
+    var b=document.createElement('div');
+    b.className='bloom';
+    b.textContent=flowers[Math.floor(Math.random()*flowers.length)];
+    b.style.left=rand(2,92)+'vw';
+    b.style.top=rand(55,92)+'vh';
+    b.style.fontSize=rand(34,70)+'px';
+    document.body.appendChild(b);
+  }
+  /* ===== Petasan / kembang api ===== */
+  var cv=document.getElementById('fx'),cx=cv.getContext('2d'),W,H,rockets=[],sparks=[],fxOn=false;
+  var colors=['#ff5d8f','#ffb3c9','#ffd166','#ffffff','#ff2e63','#ff9ecd'];
+  function size(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight}
+  size();window.addEventListener('resize',size);
+  function launch(){
+    rockets.push({x:rand(W*.15,W*.85),y:H,vy:-rand(H*.011,H*.016),ty:rand(H*.12,H*.4),c:colors[Math.floor(Math.random()*colors.length)]});
+  }
+  function explode(x,y,c){
+    var n=70,heart=Math.random()<.4;
+    for(var i=0;i<n;i++){
+      var a=Math.PI*2*i/n,s,vx,vy;
+      if(heart){var t=a;vx=16*Math.pow(Math.sin(t),3)*.28;vy=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*.28}
+      else{s=rand(1.5,6);vx=Math.cos(a)*s;vy=Math.sin(a)*s}
+      sparks.push({x:x,y:y,vx:vx,vy:vy,life:1,d:rand(.008,.018),c:Math.random()<.7?c:'#ffffff'});
+    }
+  }
+  function loop(){
+    cx.globalCompositeOperation='destination-out';
+    cx.fillStyle='rgba(0,0,0,.18)';cx.fillRect(0,0,W,H);
+    cx.globalCompositeOperation='lighter';
+    for(var i=rockets.length-1;i>=0;i--){
+      var r=rockets[i];r.y+=r.vy;
+      cx.fillStyle=r.c;cx.beginPath();cx.arc(r.x,r.y,2.5,0,7);cx.fill();
+      if(r.y<=r.ty){explode(r.x,r.y,r.c);rockets.splice(i,1)}
+    }
+    for(var j=sparks.length-1;j>=0;j--){
+      var p=sparks[j];p.x+=p.vx;p.y+=p.vy;p.vy+=.045;p.vx*=.99;p.life-=p.d;
+      if(p.life<=0){sparks.splice(j,1);continue}
+      cx.globalAlpha=p.life;cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x,p.y,2,0,7);cx.fill();
+    }
+    cx.globalAlpha=1;
+    if(fxOn||rockets.length||sparks.length)requestAnimationFrame(loop);
+  }
+  function startFx(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    fxOn=true;loop();
+    launch();setTimeout(launch,300);setTimeout(launch,700);
+    setInterval(function(){launch();if(Math.random()<.5)setTimeout(launch,200)},900);
+  }
+  btn.addEventListener('click',function(){
+    btn.classList.add('hidden');
+    msg.classList.remove('hidden');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){msg.classList.add('show')})});
+    var i=0;
+    var t=setInterval(function(){rise();rise();if(i%3===0)bloom();i++;if(i>60)clearInterval(t)},180);
+    setInterval(rise,700);
+    startFx();
+  });
+})();
+</script>
+</body>
+</html>
